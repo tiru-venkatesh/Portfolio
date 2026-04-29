@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiru Venkatesh — AI Builder & Founder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ── RESET & VARIABLES ────────────────────────────────── */
@@ -755,154 +757,170 @@ footer{border-top:1px solid var(--border);padding:38px 64px;display:flex;align-i
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* 🔐 FIREBASE CONFIG (PUT YOUR REAL KEYS) */
+const firebaseConfig = {
+  apiKey: "AIzaSyAis0DlvtXGqT9IBQONg-lKUSYnCH6_BOM",
+  authDomain: "portfolio-397ac.firebaseapp.com",
+  projectId: "portfolio-397ac",
+  storageBucket: "portfolio-397ac.firebasestorage.app",
+  messagingSenderId: "469710223450",
+  appId: "1:469710223450:web:53e3ed38089af7a6d70063",
+  measurementId: "G-2JQ5LBS595"
+};
+
+/* 🚀 INIT FIREBASE */
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ❤️ SUPPORT SYSTEM */
+window.handleLike = async function handleLike () {
+  console.log("clicked");
+
+  const nameInput = document.getElementById("supportName");
+  const name = nameInput.value.trim();
+
+  if (!name) {
+    alert("Please enter your name!");
+    return;
+  }
+
+  await addDoc(collection(db, "supporters"), {
+    name: name,
+    time: Date.now()
+  });
+
+  // 👇 SHOW THANK YOU FIRST
+  document.getElementById("supportFeedback").innerText =
+    `🔥 Thanks ${name}! Appreciate you checking my journey 🚀`;
+
+  nameInput.value = "";
+
+  // 👇 DELAY before showing recent supporters
+  setTimeout(() => {
+    loadSupporters();
+  }, 2000);
+};
+
+async function loadSupporters() {
+  const querySnapshot = await getDocs(collection(db, "supporters"));
+
+  let names = [];
+
+  querySnapshot.forEach((doc) => {
+    names.push(doc.data().name);
+  });
+
+  const count = names.length;
+
+  // show count
+  document.getElementById("likeCount").innerText = count;
+
+  // get last 3 supporters
+  const recent = names.slice(-3);
+
+  // clean UI message
+  document.getElementById("supportFeedback").innerText =
+    `🔥 ${count} supporters • ${recent.join(", ")}`;
+}
+
+loadSupporters();
+
 /* CURSOR */
 const dot=document.getElementById('cur-dot'),ring=document.getElementById('cur-ring'),glow=document.getElementById('cur-glow');
 let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';glow.style.left=mx+'px';glow.style.top=my+'px';});
-(function ar(){rx+=(mx-rx)*.13;ry+=(my-ry)*.13;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ar);})();
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  dot.style.left=mx+'px';dot.style.top=my+'px';
+  glow.style.left=mx+'px';glow.style.top=my+'px';
+});
+(function ar(){
+  rx+=(mx-rx)*.13;ry+=(my-ry)*.13;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(ar);
+})();
 document.querySelectorAll('a,button,.sk,.chip').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{ring.style.width='48px';ring.style.height='48px';ring.style.borderColor='rgba(255,179,71,.7)';});
-  el.addEventListener('mouseleave',()=>{ring.style.width='30px';ring.style.height='30px';ring.style.borderColor='rgba(255,179,71,.55)';});
+  el.addEventListener('mouseenter',()=>{
+    ring.style.width='48px';
+    ring.style.height='48px';
+  });
+  el.addEventListener('mouseleave',()=>{
+    ring.style.width='30px';
+    ring.style.height='30px';
+  });
 });
 
 /* LOADER */
-window.addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('gone'),2300));
+window.addEventListener('load',()=>{
+  setTimeout(()=>document.getElementById('loader').classList.add('gone'),2300);
+});
 
 /* NAV */
-window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('stuck',window.scrollY>60));
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('stuck',window.scrollY>60);
+});
 
-/* MOB NAV */
-function openMob(){document.getElementById('mobNav').classList.add('open');}
-function closeMob(){document.getElementById('mobNav').classList.remove('open');}
+/* MOBILE NAV */
+window.openMob = function(){
+  document.getElementById('mobNav').classList.add('open');
+}
+window.closeMob = function(){
+  document.getElementById('mobNav').classList.remove('open');
+}
 
 /* SCROLL REVEAL */
-const revObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+const revObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('vis');
+  });
+});
 document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
 
 /* COUNTER */
 const cntObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{
-    if(!e.isIntersecting)return;
-    const el=e.target,target=parseInt(el.dataset.count);let cur=0;
-    const iv=setInterval(()=>{cur+=target/45;if(cur>=target){el.textContent=target;clearInterval(iv);}else el.textContent=Math.floor(cur);},28);
+    if(!e.isIntersecting) return;
+    const el=e.target;
+    const target=parseInt(el.dataset.count);
+    let cur=0;
+    const iv=setInterval(()=>{
+      cur+=target/45;
+      if(cur>=target){
+        el.textContent=target;
+        clearInterval(iv);
+      } else {
+        el.textContent=Math.floor(cur);
+      }
+    },28);
     cntObs.unobserve(el);
   });
-},{threshold:.5});
+});
 document.querySelectorAll('[data-count]').forEach(el=>cntObs.observe(el));
 
-/* HERO THREE.JS — warm mango particles */
-(function(){
-  const canvas=document.getElementById('hero-canvas');
-  const W=window.innerWidth,H=window.innerHeight;
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setSize(W,H);
-  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(60,W/H,.1,1000);
-  cam.position.z=5;
-
-  const N=2200,pos=new Float32Array(N*3),col=new Float32Array(N*3);
-  for(let i=0;i<N;i++){
-    pos[i*3]=(Math.random()-.5)*22;pos[i*3+1]=(Math.random()-.5)*22;pos[i*3+2]=(Math.random()-.5)*22;
-    const t=Math.random();
-    if(t<.4){col[i*3]=1;col[i*3+1]=.7;col[i*3+2]=.28;}       /* mango */
-    else if(t<.7){col[i*3]=1;col[i*3+1]=.42;col[i*3+2]=.26;}  /* deep orange */
-    else{col[i*3]=1;col[i*3+1]=.52;col[i*3+2]=.47;}            /* peach rose */
-  }
-  const pGeo=new THREE.BufferGeometry();
-  pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  pGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
-  scene.add(new THREE.Points(pGeo,new THREE.PointsMaterial({size:.032,vertexColors:true,transparent:true,opacity:.72})));
-
-  const wMat1=new THREE.MeshBasicMaterial({color:0xFFB347,wireframe:true,transparent:true,opacity:.1});
-  const wMat2=new THREE.MeshBasicMaterial({color:0xFF6B6B,wireframe:true,transparent:true,opacity:.15});
-  const s1=new THREE.Mesh(new THREE.IcosahedronGeometry(1.6,2),wMat1);
-  const s2=new THREE.Mesh(new THREE.OctahedronGeometry(.9,0),wMat2);
-  scene.add(s1);scene.add(s2);
-
-  let hmx=0,hmy=0;
-  document.addEventListener('mousemove',e=>{hmx=(e.clientX/window.innerWidth-.5)*2;hmy=(e.clientY/window.innerHeight-.5)*2;});
-  (function loop(){
-    requestAnimationFrame(loop);
-    const t=Date.now()*.001;
-    s1.rotation.x=t*.08+hmy*.15;s1.rotation.y=t*.12+hmx*.15;
-    s2.rotation.x=-t*.18;s2.rotation.y=t*.24;
-    renderer.render(scene,cam);
-  })();
-  window.addEventListener('resize',()=>{const nw=window.innerWidth,nh=window.innerHeight;renderer.setSize(nw,nh);cam.aspect=nw/nh;cam.updateProjectionMatrix();});
-})();
-
-/* MACHINE THREE.JS — warm amber orbital */
-(function(){
-  const canvas=document.getElementById('machine-canvas');
-  let W=canvas.parentElement.clientWidth||500,H=480;
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-  renderer.setSize(W,H);
-  renderer.shadowMap.enabled=true;
-  const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(48,W/H,.1,100);
-  cam.position.set(0,0,7);
-
-  scene.add(new THREE.AmbientLight(0x120a02,1));
-  const pl1=new THREE.PointLight(0xFFB347,3,22);pl1.position.set(4,3,4);scene.add(pl1);
-  const pl2=new THREE.PointLight(0xFF8C42,2,18);pl2.position.set(-4,-2,2);scene.add(pl2);
-  const pl3=new THREE.PointLight(0xFF6B6B,1.5,15);pl3.position.set(0,4,-2);scene.add(pl3);
-
-  const group=new THREE.Group();scene.add(group);
-  const coreGeo=new THREE.IcosahedronGeometry(.75,1);
-  const coreMat=new THREE.MeshPhongMaterial({color:0x150800,emissive:0x210d00,specular:0xFFB347,shininess:120});
-  group.add(new THREE.Mesh(coreGeo,coreMat));
-  const coreW=new THREE.Mesh(coreGeo,new THREE.MeshBasicMaterial({color:0xFFB347,wireframe:true,transparent:true,opacity:.38}));
-  group.add(coreW);
-
-  const rM=(c,o)=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o});
-  const r1=new THREE.Mesh(new THREE.TorusGeometry(1.5,.025,8,80),rM(0xFFB347,.55));
-  const r2=new THREE.Mesh(new THREE.TorusGeometry(2.0,.018,8,80),rM(0xFF8C42,.35));
-  r2.rotation.x=Math.PI/2.5;
-  const r3=new THREE.Mesh(new THREE.TorusGeometry(2.5,.012,8,100),rM(0xFF6B6B,.22));
-  r3.rotation.x=Math.PI/1.8;r3.rotation.z=Math.PI/4;
-  group.add(r1,r2,r3);
-
-  [[1.5,0,0],[-1.5,0,0],[0,1.5,0],[0,-1.5,0],[1.06,0,1.06],[-1.06,0,-1.06]].forEach((p,i)=>{
-    const n=new THREE.Mesh(new THREE.SphereGeometry(.11,10,10),
-      new THREE.MeshPhongMaterial({color:i%2===0?0xFFB347:0xFF8C42,emissive:i%2===0?0x442200:0x331500}));
-    n.position.set(...p);group.add(n);
-  });
-
-  const pN=350,pBuf=new Float32Array(pN*3);
-  for(let i=0;i<pN;i++){const a=Math.random()*Math.PI*2,r=2.8+Math.random()*1.5;pBuf[i*3]=Math.cos(a)*r;pBuf[i*3+1]=(Math.random()-.5)*4.5;pBuf[i*3+2]=Math.sin(a)*r;}
-  const pGeo2=new THREE.BufferGeometry();pGeo2.setAttribute('position',new THREE.BufferAttribute(pBuf,3));
-  scene.add(new THREE.Points(pGeo2,new THREE.PointsMaterial({color:0xFFB347,size:.055,transparent:true,opacity:.42})));
-
-  let clicked=false,tScale=1;
-  canvas.addEventListener('click',()=>{clicked=!clicked;document.getElementById('mDetail').classList.toggle('vis',clicked);tScale=clicked?1.18:1;});
-  let mx2=0,my2=0;
-  canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();mx2=(e.clientX-r.left)/r.width*2-1;my2=-((e.clientY-r.top)/r.height*2-1);});
-
-  (function loop(){
-    requestAnimationFrame(loop);
-    const t=Date.now()*.001;
-    group.rotation.y+=.006+mx2*.002;group.rotation.x+=.002+my2*.002;
-    r1.rotation.z=t*.4;r2.rotation.y=-t*.25;r3.rotation.x+=.003;
-    coreW.rotation.y=-t*.5;coreW.rotation.x=t*.38;
-    const cs=group.scale.x+(tScale-group.scale.x)*.05;group.scale.set(cs,cs,cs);
-    pl1.position.x=Math.sin(t)*.4*5;pl1.position.z=Math.cos(t)*.4*5;
-    renderer.render(scene,cam);
-  })();
-  window.addEventListener('resize',()=>{W=canvas.parentElement.clientWidth||500;renderer.setSize(W,H);cam.aspect=W/H;cam.updateProjectionMatrix();});
-})();
-
 /* FORM */
-function handleForm(e){
+window.handleForm = function(e){
   e.preventDefault();
   const btn=document.getElementById('fBtn');
-  btn.innerHTML='<span>Sending...</span>';btn.style.opacity='.6';
-  setTimeout(()=>{document.getElementById('formOk').style.display='block';document.getElementById('cForm').reset();btn.innerHTML='<span>Send Message</span><span>→</span>';btn.style.opacity='1';},1400);
-}
+  btn.innerHTML='Sending...';
+  setTimeout(()=>{
+    document.getElementById('formOk').style.display='block';
+    document.getElementById('cForm').reset();
+    btn.innerHTML='Send Message →';
+  },1200);
+};
 
 /* SMOOTH SCROLL */
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}});
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){
+      e.preventDefault();
+      t.scrollIntoView({behavior:'smooth'});
+    }
+  });
 });
 </script>
 </body>
