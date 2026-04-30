@@ -900,66 +900,137 @@ const cntObs = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.5 });
 document.querySelectorAll('[data-count]').forEach(el => cntObs.observe(el));
- 
-/* ═══════════════════════════════════
-   HERO THREE.JS
+ /* ═══════════════════════════════════
+   HERO THREE.JS (MANGO ORBITAL)
 ═══════════════════════════════════ */
 (function(){
   const canvas = document.getElementById('hero-canvas');
-  const W = window.innerWidth, H = window.innerHeight;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(W, H);
- 
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
   const scene = new THREE.Scene();
-  const cam = new THREE.PerspectiveCamera(60, W/H, 0.1, 1000);
-  cam.position.z = 5;
- 
-  /* Particles */
-  const N = 2200;
-  const pos = new Float32Array(N*3);
-  const col = new Float32Array(N*3);
-  for(let i=0;i<N;i++){
-    pos[i*3]=(Math.random()-.5)*22;
-    pos[i*3+1]=(Math.random()-.5)*22;
-    pos[i*3+2]=(Math.random()-.5)*22;
-    const t=Math.random();
-    if(t<.5){ col[i*3]=1; col[i*3+1]=0.7; col[i*3+2]=0.28; }   // mango
-    else{ col[i*3]=1; col[i*3+1]=0.55; col[i*3+2]=0.26; }      // deep mango
+
+  const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 5;
+
+  /* ✨ PARTICLES (MAIN FIELD) */
+  const count = 1600;
+  const positions = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 20;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
   }
-  const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  pGeo.setAttribute('color', new THREE.BufferAttribute(col,3));
-  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ size:.032, vertexColors:true, transparent:true, opacity:.75 })));
- 
-  /* Central wireframe structures */
-  const wMat1 = new THREE.MeshBasicMaterial({ color:0xFFB347, wireframe:true, transparent:true, opacity:.1 });
-  const wMat2 = new THREE.MeshBasicMaterial({ color:0xFF8C42, wireframe:true, transparent:true, opacity:.18 });
-  const s1 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6,2), wMat1);
-  const s2 = new THREE.Mesh(new THREE.OctahedronGeometry(0.9,0), wMat2);
-  scene.add(s1); scene.add(s2);
- 
-  let hmx=0, hmy=0;
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const mat = new THREE.PointsMaterial({
+    color: 0xFFB347, // mango
+    size: 0.03,
+    transparent: true,
+    opacity: 0.7
+  });
+
+  const particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  /* 🌟 ORBITAL SPARKLES */
+  const sparkleGeo = new THREE.BufferGeometry();
+  const sparkleCount = 400;
+  const sparklePos = new Float32Array(sparkleCount * 3);
+
+  for (let i = 0; i < sparkleCount; i++) {
+    const radius = 3 + Math.random() * 2;
+    const angle = Math.random() * Math.PI * 2;
+
+    sparklePos[i * 3] = Math.cos(angle) * radius;
+    sparklePos[i * 3 + 1] = (Math.random() - 0.5) * 3;
+    sparklePos[i * 3 + 2] = Math.sin(angle) * radius;
+  }
+
+  sparkleGeo.setAttribute('position', new THREE.BufferAttribute(sparklePos, 3));
+
+  const sparkleMat = new THREE.PointsMaterial({
+    color: 0xFFD180,
+    size: 0.02,
+    transparent: true,
+    opacity: 0.9
+  });
+
+  const sparkles = new THREE.Points(sparkleGeo, sparkleMat);
+  scene.add(sparkles);
+
+  /* 🧠 CORE SHAPES */
+  const core1 = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.4, 1),
+    new THREE.MeshBasicMaterial({
+      color: 0xFFB347,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.15
+    })
+  );
+
+  const core2 = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.7, 0),
+    new THREE.MeshBasicMaterial({
+      color: 0xFF8C42,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.25
+    })
+  );
+
+  scene.add(core1, core2);
+
+  /* 🖱️ MOUSE INTERACTION */
+  let mx = 0, my = 0;
+
   document.addEventListener('mousemove', e => {
-    hmx = (e.clientX/window.innerWidth-.5)*2;
-    hmy = (e.clientY/window.innerHeight-.5)*2;
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
   });
- 
-  (function loop(){
-    requestAnimationFrame(loop);
-    const t = Date.now()*.001;
-    s1.rotation.x = t*.08 + hmy*.15;
-    s1.rotation.y = t*.12 + hmx*.15;
-    s2.rotation.x = -t*.18;
-    s2.rotation.y = t*.24;
-    renderer.render(scene, cam);
-  })();
- 
+
+  /* 🔁 ANIMATION LOOP */
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const t = Date.now() * 0.001;
+
+    core1.rotation.x = t * 0.1 + my * 0.2;
+    core1.rotation.y = t * 0.12 + mx * 0.2;
+
+    core2.rotation.x = -t * 0.2;
+    core2.rotation.y = t * 0.25;
+
+    sparkles.rotation.y += 0.001;
+    sparkles.rotation.x += 0.0005;
+
+    particles.rotation.y += 0.0003;
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  /* 📱 RESPONSIVE */
   window.addEventListener('resize', () => {
-    const nw = window.innerWidth, nh = window.innerHeight;
-    renderer.setSize(nw, nh);
-    cam.aspect = nw/nh; cam.updateProjectionMatrix();
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
   });
+
 })();
  
 /* ═══════════════════════════════════
