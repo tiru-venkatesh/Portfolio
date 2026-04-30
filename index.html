@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiru Venkatesh — AI Builder & Founder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ── RESET & VARIABLES ────────────────────────────────── */
@@ -829,98 +828,313 @@ async function loadSupporters() {
 
 loadSupporters();
 
-/* CURSOR */
-const dot=document.getElementById('cur-dot'),ring=document.getElementById('cur-ring'),glow=document.getElementById('cur-glow');
+/* ═══════════════════════════════════
+   CURSOR
+═══════════════════════════════════ */
+const dot = document.getElementById('cur-dot');
+const ring = document.getElementById('cur-ring');
+const glow = document.getElementById('cur-glow');
 let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX;my=e.clientY;
-  dot.style.left=mx+'px';dot.style.top=my+'px';
-  glow.style.left=mx+'px';glow.style.top=my+'px';
+ 
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+  glow.style.left = mx + 'px'; glow.style.top = my + 'px';
 });
-(function ar(){
-  rx+=(mx-rx)*.13;ry+=(my-ry)*.13;
-  ring.style.left=rx+'px';ring.style.top=ry+'px';
-  requestAnimationFrame(ar);
+ 
+(function animRing(){
+  rx += (mx-rx)*0.13; ry += (my-ry)*0.13;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(animRing);
 })();
-document.querySelectorAll('a,button,.sk,.chip').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{
-    ring.style.width='48px';
-    ring.style.height='48px';
-  });
-  el.addEventListener('mouseleave',()=>{
-    ring.style.width='30px';
-    ring.style.height='30px';
-  });
+ 
+document.querySelectorAll('a,button,.sk,.chip').forEach(el => {
+  el.addEventListener('mouseenter', () => { ring.style.width='48px'; ring.style.height='48px'; ring.style.borderColor='var(--mango)'; });
+  el.addEventListener('mouseleave', () => { ring.style.width='30px'; ring.style.height='30px'; ring.style.borderColor='rgba(255,179,71,.5)'; });
 });
-
-/* LOADER */
-window.addEventListener('load',()=>{
-  setTimeout(()=>document.getElementById('loader').classList.add('gone'),2300);
+ 
+/* ═══════════════════════════════════
+   LOADER
+═══════════════════════════════════ */
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('gone'), 2300);
 });
-
-/* NAV */
-window.addEventListener('scroll',()=>{
-  document.getElementById('nav').classList.toggle('stuck',window.scrollY>60);
+ 
+/* ═══════════════════════════════════
+   NAVBAR
+═══════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('stuck', window.scrollY > 60);
 });
-
-/* MOBILE NAV */
-window.openMob = function(){
-  document.getElementById('mobNav').classList.add('open');
-}
-window.closeMob = function(){
-  document.getElementById('mobNav').classList.remove('open');
-}
-
-/* SCROLL REVEAL */
-const revObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting) e.target.classList.add('vis');
-  });
-});
-document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
-
-/* COUNTER */
-const cntObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
+ 
+/* ═══════════════════════════════════
+   MOBILE NAV
+═══════════════════════════════════ */
+function openMob(){ document.getElementById('mobNav').classList.add('open'); }
+function closeMob(){ document.getElementById('mobNav').classList.remove('open'); }
+ 
+/* ═══════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════ */
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+ 
+/* ═══════════════════════════════════
+   COUNTER
+═══════════════════════════════════ */
+const cntObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
     if(!e.isIntersecting) return;
-    const el=e.target;
-    const target=parseInt(el.dataset.count);
-    let cur=0;
-    const iv=setInterval(()=>{
-      cur+=target/45;
-      if(cur>=target){
-        el.textContent=target;
-        clearInterval(iv);
-      } else {
-        el.textContent=Math.floor(cur);
-      }
-    },28);
+    const el = e.target;
+    const target = parseInt(el.dataset.count);
+    let cur = 0;
+    const step = target / 45;
+    const iv = setInterval(() => {
+      cur += step;
+      if(cur >= target){ el.textContent = target; clearInterval(iv); }
+      else el.textContent = Math.floor(cur);
+    }, 28);
     cntObs.unobserve(el);
   });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => cntObs.observe(el));
+ 
+/* ═══════════════════════════════════
+   HERO THREE.JS
+═══════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('hero-canvas');
+  const W = window.innerWidth, H = window.innerHeight;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(W, H);
+ 
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(60, W/H, 0.1, 1000);
+  cam.position.z = 5;
+ 
+  /* Particles */
+  const N = 2200;
+  const pos = new Float32Array(N*3);
+  const col = new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*22;
+    pos[i*3+1]=(Math.random()-.5)*22;
+    pos[i*3+2]=(Math.random()-.5)*22;
+    const t=Math.random();
+    if(t<.5){ col[i*3]=1; col[i*3+1]=0.7; col[i*3+2]=0.28; }   // mango
+    else{ col[i*3]=1; col[i*3+1]=0.55; col[i*3+2]=0.26; }      // deep mango
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  pGeo.setAttribute('color', new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ size:.032, vertexColors:true, transparent:true, opacity:.75 })));
+ 
+  /* Central wireframe structures */
+  const wMat1 = new THREE.MeshBasicMaterial({ color:0xFFB347, wireframe:true, transparent:true, opacity:.1 });
+  const wMat2 = new THREE.MeshBasicMaterial({ color:0xFF8C42, wireframe:true, transparent:true, opacity:.18 });
+  const s1 = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6,2), wMat1);
+  const s2 = new THREE.Mesh(new THREE.OctahedronGeometry(0.9,0), wMat2);
+  scene.add(s1); scene.add(s2);
+ 
+  let hmx=0, hmy=0;
+  document.addEventListener('mousemove', e => {
+    hmx = (e.clientX/window.innerWidth-.5)*2;
+    hmy = (e.clientY/window.innerHeight-.5)*2;
+  });
+ 
+  (function loop(){
+    requestAnimationFrame(loop);
+    const t = Date.now()*.001;
+    s1.rotation.x = t*.08 + hmy*.15;
+    s1.rotation.y = t*.12 + hmx*.15;
+    s2.rotation.x = -t*.18;
+    s2.rotation.y = t*.24;
+    renderer.render(scene, cam);
+  })();
+ 
+  window.addEventListener('resize', () => {
+    const nw = window.innerWidth, nh = window.innerHeight;
+    renderer.setSize(nw, nh);
+    cam.aspect = nw/nh; cam.updateProjectionMatrix();
+  });
+})();
+ 
+/* ═══════════════════════════════════
+   MACHINE THREE.JS
+═══════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('machine-canvas');
+  let W = canvas.parentElement.clientWidth || 500, H = 480;
+ 
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(W, H);
+  renderer.shadowMap.enabled = true;
+ 
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(48, W/H, 0.1, 100);
+  cam.position.set(0, 0, 7);
+ 
+  /* Lights */
+  scene.add(new THREE.AmbientLight(0x2a1405, 1)); // warm ambient
+  const pl1 = new THREE.PointLight(0xFFB347, 3, 22);
+  const pl2 = new THREE.PointLight(0xFF8C42, 2, 18);
+  const pl3 = new THREE.PointLight(0xFFD180, 1.5, 15);
+ 
+  const group = new THREE.Group();
+  scene.add(group);
+ 
+  /* Core */
+  const coreGeo = new THREE.IcosahedronGeometry(0.75, 1);
+  const coreMat = new THREE.MeshPhongMaterial({
+  color:0x1a0a00,
+  emissive:0x331800,
+  specular:0xFFB347,
+  shininess:120
 });
-document.querySelectorAll('[data-count]').forEach(el=>cntObs.observe(el));
+  const core = new THREE.Mesh(coreGeo, coreMat);
+  group.add(core);
+ 
+  /* Core wireframe */
+  const coreW = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color:0xFFB347, wireframe:true, transparent:true, opacity:.35 }));
+  group.add(coreW);
+ 
+  /* Orbital rings */
+  const rMat = (c, o) => new THREE.MeshBasicMaterial({ color:c, transparent:true, opacity:o });
+  const r1 = new THREE.Mesh(new THREE.TorusGeometry(1.5,.025,8,80), rMat(0xFFB347,.55));
+  const r2 = new THREE.Mesh(new THREE.TorusGeometry(2.0,.018,8,80), rMat(0xFF8C42,.35));
+  r2.rotation.x = Math.PI/2.5;
+  const r3 = new THREE.Mesh(new THREE.TorusGeometry(2.5,.012,8,100), rMat(0xFFD180,.2));
+  r3.rotation.x = Math.PI/1.8;
+  r3.rotation.z = Math.PI/4;
+  group.add(r1,r2,r3);
+ /* Satellite nodes on ring 1 */
+const nPositions = [
+  [1.5,0,0],[-1.5,0,0],[0,1.5,0],[0,-1.5,0],[1.06,0,1.06],[-1.06,0,-1.06]
+];
 
-/* FORM */
-window.handleForm = function(e){
+nPositions.forEach((p,i) => {
+  const n = new THREE.Mesh(
+    new THREE.SphereGeometry(.11,10,10),
+    new THREE.MeshPhongMaterial({
+      color: i%2===0 ? 0xFFB347 : 0xFF8C42,          // 🥭 mango shades
+      emissive: i%2===0 ? 0x552200 : 0x331400,       // 🔥 warm glow (no blue)
+      shininess: 60
+    })
+  );
+  n.position.set(...p);
+  group.add(n);
+});
+
+
+/* Outer particles */
+const pN = 350;
+const pBuf = new Float32Array(pN * 3);
+
+for (let i = 0; i < pN; i++) {
+  const a = Math.random() * Math.PI * 2;
+  const r = 2.8 + Math.random() * 1.5;
+
+  pBuf[i*3] = Math.cos(a) * r;
+  pBuf[i*3+1] = (Math.random() - .5) * 4.5;
+  pBuf[i*3+2] = Math.sin(a) * r;
+}
+
+const pGeo2 = new THREE.BufferGeometry();
+pGeo2.setAttribute('position', new THREE.BufferAttribute(pBuf, 3));
+
+scene.add(new THREE.Points(
+  pGeo2,
+  new THREE.PointsMaterial({
+    color: 0xFFD180,        // 🥭 light mango glow
+    size: .05,
+    transparent: true,
+    opacity: .45
+  })
+));
+
+
+/* Interaction */
+let clicked = false, tScale = 1;
+
+canvas.addEventListener('click', () => {
+  clicked = !clicked;
+  document.getElementById('mDetail').classList.toggle('vis', clicked);
+  tScale = clicked ? 1.18 : 1;
+});
+
+let mx2 = 0, my2 = 0;
+
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  mx2 = (e.clientX - r.left) / r.width * 2 - 1;
+  my2 = -((e.clientY - r.top) / r.height * 2 - 1);
+});
+
+
+(function loop(){
+  requestAnimationFrame(loop);
+
+  const t = Date.now() * .001;
+
+  group.rotation.y += .006 + mx2 * .002;
+  group.rotation.x += .002 + my2 * .002;
+
+  r1.rotation.z = t * .4;
+  r2.rotation.y = -t * .25;
+  r3.rotation.x += .003;
+
+  coreW.rotation.y = -t * .5;
+  coreW.rotation.x = t * .38;
+
+  const cs = group.scale.x + (tScale - group.scale.x) * .05;
+  group.scale.set(cs, cs, cs);
+
+  pl1.position.x = Math.sin(t) * .4 * 5;
+  pl1.position.z = Math.cos(t) * .4 * 5;
+
+  renderer.render(scene, cam);
+})();
+
+
+window.addEventListener('resize', () => {
+  W = canvas.parentElement.clientWidth || 500;
+  renderer.setSize(W, H);
+  cam.aspect = W / H;
+  cam.updateProjectionMatrix();
+})();
+
+/* ═══════════════════════════════════
+   FORM
+═══════════════════════════════════ */
+function handleForm(e){
   e.preventDefault();
   const btn=document.getElementById('fBtn');
-  btn.innerHTML='Sending...';
+  btn.innerHTML='<span>Sending...</span>';
+  btn.style.opacity='.6';
   setTimeout(()=>{
     document.getElementById('formOk').style.display='block';
     document.getElementById('cForm').reset();
-    btn.innerHTML='Send Message →';
-  },1200);
-};
-
-/* SMOOTH SCROLL */
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click',e=>{
-    const t=document.querySelector(a.getAttribute('href'));
-    if(t){
-      e.preventDefault();
-      t.scrollIntoView({behavior:'smooth'});
+    btn.innerHTML='<span>Send Message</span><span>→</span>';
+    btn.style.opacity='1';
+  }, 1400);
+}
+ 
+/* ═══════════════════════════════════
+   SMOOTH SCROLL
+═══════════════════════════════════ */
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('vis');
     }
   });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
 });
 </script>
 </body>
